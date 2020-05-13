@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Scrapy settings for Walmart project
+# Scrapy settings for walmart project
 #
 # For simplicity, this file contains only settings considered important or
 # commonly used. You can find more settings consulting the documentation:
@@ -9,14 +9,14 @@
 #     https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
-BOT_NAME = 'Walmart'
+BOT_NAME = 'walmart'
 
-SPIDER_MODULES = ['Walmart.spiders']
-NEWSPIDER_MODULE = 'Walmart.spiders'
-
+SPIDER_MODULES = ['walmart.spiders']
+NEWSPIDER_MODULE = 'walmart.spiders'
+LOG_LEVEL = 'WARNING'
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
-#USER_AGENT = 'Walmart (+http://www.yourdomain.com)'
+#USER_AGENT = 'walmart (+http://www.yourdomain.com)'
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = True
@@ -47,13 +47,13 @@ ROBOTSTXT_OBEY = True
 # Enable or disable spider middlewares
 # See https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 #SPIDER_MIDDLEWARES = {
-#    'Walmart.middlewares.WalmartSpiderMiddleware': 543,
+#    'walmart.middlewares.WalmartSpiderMiddleware': 543,
 #}
 
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 #DOWNLOADER_MIDDLEWARES = {
-#    'Walmart.middlewares.WalmartDownloaderMiddleware': 543,
+#    'walmart.middlewares.WalmartDownloaderMiddleware': 543,
 #}
 
 # Enable or disable extensions
@@ -65,7 +65,7 @@ ROBOTSTXT_OBEY = True
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 #ITEM_PIPELINES = {
-#    'Walmart.pipelines.WalmartPipeline': 300,
+#    'walmart.pipelines.WalmartPipeline': 300,
 #}
 
 # Enable and configure the AutoThrottle extension (disabled by default)

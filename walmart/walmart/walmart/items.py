@@ -10,7 +10,6 @@ import scrapy
 
 class WalmartItem(scrapy.Item):
     # define the fields for your item here like:
-
     #Product
     store = 'Walmart'
     barCodes = scrapy.Field()
@@ -25,7 +24,7 @@ class WalmartItem(scrapy.Item):
     dataJson = scrapy.Field()
 
     #branchProducts
-    product = scrapy.Field()
-    branch = scrapy.Field()
+    # product = scrapy.Field()
+    # branch = scrapy.Field()
     stock = scrapy.Field()
     price = scrapy.Field()
