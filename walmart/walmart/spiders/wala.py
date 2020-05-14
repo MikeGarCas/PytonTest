@@ -4,6 +4,7 @@ import json
 from scrapy.http import Response
 from scrapy.spiders import CrawlSpider, Rule
 from scrapy.linkextractors import LinkExtractor
+from scrapy.exceptions import CloseSpider
 from scrapy.selector import Selector
 from walmart.items import WalmartItem
 
@@ -12,32 +13,8 @@ class WalSpider(CrawlSpider):
     name = 'walmart'
     #contador para parar en 500 elementos
     item_count = 0
-    # start_urls = [
-    #     'https://www.walmart.ca/en/grocery/fruits-and-vegetables/N-3799', 
-    #     'https://www.walmart.ca/en/grocery/dairy-eggs/N-3798', 
-    #     'https://www.walmart.ca/en/grocery/meat-seafood/N-3793',
-    #     'https://www.walmart.ca/en/grocery/pantry-food/N-3794', 
-    #     'https://www.walmart.ca/en/grocery/natural-organic-food/N-3992',
-    #     'https://www.walmart.ca/en/grocery/frozen-food/N-3795',
-    #     'https://www.walmart.ca/en/grocery/bakery/N-3796',
-    #     'https://www.walmart.ca/en/grocery/deli-ready-made-meals/N-3792',
-    #     'https://www.walmart.ca/en/grocery/drinks/N-3791',
-    #     'https://www.walmart.ca/en/grocery/international-foods/N-4356',
-    #     'https://www.walmart.ca/en/grocery/household-supplies/N-3803', 
-    #     'https://www.walmart.ca/en/grocery/health-beauty-pharmacy/N-3800', 
-    #     'https://www.walmart.ca/en/grocery/baby/N-3789', 
-    #     'https://www.walmart.ca/en/grocery/pets/N-3797', 
-    #     'https://www.walmart.ca/en/grocery/pantry-food/chips-snacks/N-3842', 
-    #     'https://www.walmart.ca/en/grocery/dairy-eggs/milk-cream/N-3851', 
-    #     'https://www.walmart.ca/en/grocery/pantry-food/pasta-rice-beans/N-3835',
-    #     'https://www.walmart.ca/en/grocery/frozen-food/frozen-meat-seafood/N-3827'
-    # ]
-  
-    
-    start_urls = [
-        'https://www.walmart.ca/en/grocery/fruits-and-vegetables/N-3799', 
-        'https://www.walmart.ca/en/grocery/dairy-eggs/N-3798', 
-    ]
+
+    #función para inicializar la busqueda
     def start_requests(self):
         #Url en la que se inicia el scraping
         url = "https://www.walmart.ca/en/grocery/N-117"
@@ -58,7 +35,7 @@ class WalSpider(CrawlSpider):
     def parse(self, response):
         #variable para concatenar la url completa
         base_url = 'https://www.walmart.ca'
-        url = "https://www.walmart.ca/en/grocery/fruits-vegetables/N-3799/"
+        # url = "https://www.walmart.ca/en/grocery/fruits-vegetables/N-3799/"
         headers = {
             "Accept": "application/json, text/javascript, */*; q=0.01",
             "Accept-Encoding": "gzip, deflate, br",
@@ -69,66 +46,130 @@ class WalSpider(CrawlSpider):
             "X-Requested-With": "XMLHttpRequest"
         }
         #variable donde se guardan todas las url
-        url1 = response.xpath('//div[@class="media-tracking tile desktop6 tablet3 mobile2  seoTile"]/a/@href').extract()
+        url = response.xpath('//div[@class="media-tracking tile desktop6 tablet3 mobile2  seoTile"]/a/@href').extract()
+        # print('url', url)
         #condición para saber si la variable tiene datos
         if len(url) > 0:
             #se envían los datos y se manda llamar la siguiente función
-            yield scrapy.Request(url=url, method="POST",  headers=headers, callback=self.parse_item)
+            for allUrl in url:
+                url_category = base_url+allUrl
+                # print('url_category', url_category)
+                yield scrapy.Request(url=url_category, method="POST",  headers=headers, callback=self.parse_item)
         else:
             print('Url not found')    
      
     # función para obtener todas las url de los productos
     def parse_item(self, response):
-        # se toman las url de cada producto
-        url_item = response.xpath('//div[@class="thumb-inner-wrap"]/a/@href').extract_first()
-        url_item = str(url_item)
-        base_url = 'https://www.walmart.ca'
-        data_item = base_url+url_item
-        print('data_item', data_item)
-        #condición para saber si encontró alguna url
         
-        if url_item != 'None':
-            yield scrapy.Request(url=data_item, callback=self.parse_extract)
+        # se toman las url de cada producto
+        urls_item = response.xpath('//a[@class="product-link"]/@href').extract()
+        
+        #método para eliminar las url repetidas
+        myList = list(set(urls_item))
+        #variable para completar la url
+        base_url = 'https://www.walmart.ca'
+
+        #validación que si existe la url
+        if urls_item != 'None':
+            for url in myList:
+                url_section = base_url+url
+                yield scrapy.Request(url=url_section, callback=self.parse_extract)
         else:
             print('URL not found')
+    
     #función para obtener toda la data correspondiente
     def parse_extract(self, response):
+
+        base_url = 'https://www.walmart.ca/en'
+
+        # variable para invocar la función desde items
+        wl_item = WalmartItem()
+        dataComplete = []
         #Aquí es donde se van a extraer todos los datos del item, como es sku, codigo, nombre, etc.
         data = response.xpath('/html/body/script[1]/text()').extract_first()
-
+        #validación para saber si existe data
         if len(data) > 0:
+           
             #se reemplazan atributos para manejar el json
             data = data.replace(';', '}')
             data = data.replace('window.__PRELOADED_STATE__', '{"allData"')
             data = data.replace('=',':')
             newData = json.loads(data)
 
-            #ID de tiendas
+            #ID tienda
             branch = newData["allData"]["catchment"]["storeId"]
             print('branch', branch)
-            if branch == 3124 or 3106:
-                # print('si paso')
-                
-                # stock = response.xpath('//span[@class="css-1nqkqc7 esdkp3p2"]').extract()
-        
-                sku = newData["allData"]["product"]["activeSkuId"]
-                # print('sku', sku)
-                category = response.xpath('//ol[@class="css-f0oitm e16uoh2c1"]').extract_first()
-            
+            if branch == 3106 or 3124:
+               
+                # stock = response.xpath('//span[@class="css-1nqkqc7 esdkp3p2"]').extract() ##no working yet
+                #category = response.xpath('') ##not working yet
+                productId  = newData["allData"]["product"]["activeSkuId"] ## es el sku de la tabla
+                print('productId', productId)
+                store = 'Walmart'
+                print('store', store)
+                upc = newData["allData"]["entities"]["skus"][productId]["upc"] #brancode
+                print('upc', upc)
+                sku = newData["allData"]["product"]["item"]["id"]
+                print('sku', sku)
+                # category = response.xpath('//ol[@class="css-f0oitm e16uoh2c1"]').extract_first()
+                # print('category', category)
                 name = newData["allData"]["product"]["item"]["name"]["en"]
-                # print('name', name)
-                description = newData["allData"]["entities"]["skus"][sku]["longDescription"]
-                # print('description', description)
-                upc = newData["allData"]["entities"]["skus"][sku]["upc"] #brancode
-                # print('upc', upc)
-                imageUrl = newData["allData"]["entities"]["skus"][sku]["images"][0]["large"]["url"]
-                # print('imageUrl', imageUrl)
-                url1 = response.xpath('//link[@rel="alternate"]/@href')[0].extract()
-                # print('url1', url1)
-                brand = newData["allData"]["entities"]["skus"][sku]["brand"]["name"]
-                # print('brand', brand)
+                print('name', name)
+                description = newData["allData"]["entities"]["skus"][productId]["longDescription"]
+                print('description', description)
                 package = newData["allData"]["product"]["item"]["description"]
-                # print('package', package)
+                print('package', package)
+                imageUrl = newData["allData"]["entities"]["skus"][productId]["images"][0]["large"]["url"]
+                imageUrl = base_url+imageUrl
+                print('imageUrl', imageUrl)
+                url1 = response.xpath('//link[@rel="alternate"]/@href')[0].extract()
+                print('url1', url1)
+                brand = newData["allData"]["entities"]["skus"][productId]["brand"]["name"]
+                print('brand', brand)
+
+                idProduct = 'idProduc'
+                tienda = 'tienda'
+                newUpc = 'upc'
+                eseku = 'eseku'
+                nombre = 'nombre'
+                descripcion = 'descripcion'
+                paquete = 'paquete'
+                imagenUrl = 'imagenUrl'
+                url2 = 'url2'
+                brande = 'brande'
+
+                dataComplete.append({
+                    idProduct : productId,
+                    tienda : store,
+                    newUpc : upc,
+                    eseku : sku,
+                    nombre : name,
+                    descripcion : description,
+                    paquete : package,
+                    imagenUrl : imageUrl,
+                    url2 : url1,
+                    brande : brand
+                })
+                print(dataComplete)
+
+                wl_item['productId'] = productId
+                wl_item['store'] = store
+                wl_item['upc'] = upc
+                wl_item['sku'] = sku
+                # wl_item['category'] = category
+                wl_item['name'] = name
+                wl_item['description'] = description
+                wl_item['package'] = package
+                wl_item['imageUrl'] = imageUrl
+                wl_item['url1'] = url1
+                wl_item['brand'] = brand
+                # if len(dataComplete) > 10:
+                #     raise CloseSpider('item_exceeded')
+                #     print(dataComplete)
+                self.item_count += 1
+                if self.item_count > 5:
+                    raise CloseSpider('item_exceeded')
+                yield wl_item                   
             else:
                 print('La rama no pertenece a la 3106 o la 3124')    
             
