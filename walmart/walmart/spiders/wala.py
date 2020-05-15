@@ -114,7 +114,7 @@ class WalSpider(CrawlSpider):
                 imageUrl = base_url+imageUrl
                 url1 = response.xpath('//link[@rel="alternate"]/@href')[0].extract()
                 brand = newData["allData"]["entities"]["skus"][productId]["brand"]["name"]
-                stock = newData["allData"]["product"]["item"]["description"]["totalCount"]
+                stock = newData["allData"]["product"]["item"]["rating"]["totalCount"]
 
                 wl_item['productId'] = productId
                 wl_item['store'] = store
