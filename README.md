@@ -1,2 +1,0 @@
-# PytonTest
-Scrpaing development

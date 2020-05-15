@@ -11,20 +11,19 @@ import scrapy
 class WalmartItem(scrapy.Item):
     # define the fields for your item here like:
     #Product
-    store = 'Walmart'
-    barCodes = scrapy.Field()
+    store = scrapy.Field()
     sku = scrapy.Field()
-    brand = scrapy.Field()
+    upc = scrapy.Field()
+    category = scrapy.Field()
     name = scrapy.Field()
     description = scrapy.Field()
-    package = scrapy.Field()
     imageUrl = scrapy.Field()
-    category = scrapy.Field()
-    productUrl = scrapy.Field()
-    dataJson = scrapy.Field()
+    url1 = scrapy.Field()
+    brand = scrapy.Field()
+    package = scrapy.Field()
 
     #branchProducts
-    # product = scrapy.Field()
-    # branch = scrapy.Field()
-    stock = scrapy.Field()
+    productId = scrapy.Field()
+    branch = scrapy.Field()
+    stock = scrapy.Field() #falta
     price = scrapy.Field()

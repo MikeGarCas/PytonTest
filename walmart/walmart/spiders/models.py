@@ -34,7 +34,7 @@ class BranchProduct(Base):
     id = Column(Integer, primary_key=True)
     product_id = Column(None, ForeignKey('products.id'), nullable=False)
     branch = Column(String, nullable=False)
-    stock = Column(Integer, default=0, nullable=False)
-    price = Column(Float, nullable=False)
+    stock = Column(Integer, default=0, nullable=True)
+    price = Column(Float, nullable=True)
 
     product = relationship("Product", back_populates="branch_products")

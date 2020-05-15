@@ -95,79 +95,42 @@ class WalSpider(CrawlSpider):
             data = data.replace('window.__PRELOADED_STATE__', '{"allData"')
             data = data.replace('=',':')
             newData = json.loads(data)
-
-            #ID tienda
+          
+            # #ID tienda
             branch = newData["allData"]["catchment"]["storeId"]
-            print('branch', branch)
+    
             if branch == 3106 or 3124:
                
-                # stock = response.xpath('//span[@class="css-1nqkqc7 esdkp3p2"]').extract() ##no working yet
-                #category = response.xpath('') ##not working yet
+                #extracción de data
                 productId  = newData["allData"]["product"]["activeSkuId"] ## es el sku de la tabla
-                print('productId', productId)
                 store = 'Walmart'
-                print('store', store)
-                upc = newData["allData"]["entities"]["skus"][productId]["upc"] #brancode
-                print('upc', upc)
+                upc = newData["allData"]["entities"]["skus"][productId]["upc"][0] #brancode
                 sku = newData["allData"]["product"]["item"]["id"]
-                print('sku', sku)
-                # category = response.xpath('//ol[@class="css-f0oitm e16uoh2c1"]').extract_first()
-                # print('category', category)
+                category = response.xpath('normalize-space(//ol[@class="css-f0oitm e16uoh2c1"])').extract_first()
                 name = newData["allData"]["product"]["item"]["name"]["en"]
-                print('name', name)
                 description = newData["allData"]["entities"]["skus"][productId]["longDescription"]
-                print('description', description)
                 package = newData["allData"]["product"]["item"]["description"]
-                print('package', package)
                 imageUrl = newData["allData"]["entities"]["skus"][productId]["images"][0]["large"]["url"]
                 imageUrl = base_url+imageUrl
-                print('imageUrl', imageUrl)
                 url1 = response.xpath('//link[@rel="alternate"]/@href')[0].extract()
-                print('url1', url1)
                 brand = newData["allData"]["entities"]["skus"][productId]["brand"]["name"]
-                print('brand', brand)
-
-                idProduct = 'idProduc'
-                tienda = 'tienda'
-                newUpc = 'upc'
-                eseku = 'eseku'
-                nombre = 'nombre'
-                descripcion = 'descripcion'
-                paquete = 'paquete'
-                imagenUrl = 'imagenUrl'
-                url2 = 'url2'
-                brande = 'brande'
-
-                dataComplete.append({
-                    idProduct : productId,
-                    tienda : store,
-                    newUpc : upc,
-                    eseku : sku,
-                    nombre : name,
-                    descripcion : description,
-                    paquete : package,
-                    imagenUrl : imageUrl,
-                    url2 : url1,
-                    brande : brand
-                })
-                print(dataComplete)
+                stock = newData["allData"]["product"]["item"]["description"]["totalCount"]
 
                 wl_item['productId'] = productId
                 wl_item['store'] = store
                 wl_item['upc'] = upc
                 wl_item['sku'] = sku
-                # wl_item['category'] = category
+                wl_item['stock'] = stock
                 wl_item['name'] = name
                 wl_item['description'] = description
                 wl_item['package'] = package
                 wl_item['imageUrl'] = imageUrl
                 wl_item['url1'] = url1
                 wl_item['brand'] = brand
-                # if len(dataComplete) > 10:
-                #     raise CloseSpider('item_exceeded')
-                #     print(dataComplete)
+                wl_item['branch'] = branch 
+                #condición para que haga com máximo 500
                 self.item_count += 1
-                if self.item_count > 5:
+                if self.item_count > 501:
                     raise CloseSpider('item_exceeded')
                 yield wl_item                   
             else:
